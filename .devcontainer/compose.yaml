@@ -9,17 +9,15 @@ services:
     volumes:
     - ../..:/workspaces:cached
 
-    # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity
 
-    # Uncomment the next line to use a non-root user for all processes.
-    # user: vscode
-
-    # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.
-    # (Adding the "ports" property to this file will not forward from a Codespace.)
+    environment:
+      MONGODB_URL: "mongodb://mongo:27017/mongoid_model_load_bug_development"
+    
     depends_on:
     - selenium
     - postgres
+    - mongo
 
   selenium:
     image: selenium/standalone-chromium
@@ -36,5 +34,19 @@ services:
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: postgres
 
+  mongo:
+    image: mongo:7.0
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: mongoid_model_load_bug_development
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo localhost:27017/mongoid_model_load_bug_development --quiet
+      interval: 5s
+
 volumes:
   postgres-data:
+  mongo-data:
